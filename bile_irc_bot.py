@@ -21,6 +21,7 @@ class BileIrcBot(object):
         self.channels = channels
         # Creates socket object as attribute of bot
         self.irc_socket = None
+        self.channel_ops = []
 
     # connect_to_server - Connects the bot to the given server
     def connect_to_server(self):
@@ -55,31 +56,6 @@ class BileIrcBot(object):
             self.dir_to_func(cmd_info)
         print msg
 
-    # handle_message -
-    #   Params:
-    #      msg - type: string, the command to parse
-    #   Returns:
-    #      parsed_command type: dictionary, the object containting command attributes
-    def parse_command(self, msg):
-        # Parses the message to find the command issuing user, channel, and command name
-        query = msg.split(':$')[1]
-        user = msg.split(':')[1].split('!')[0]
-        channel = msg.split('PRIVMSG')[1].split(':')[0].strip()
-        command = query.split(' ')[0]
-        # Checks for arguments following bot command, places them to args. If there are none, set args to False
-        if ' ' in query:
-            args = query.split(' ', 1)[1].strip('\n\t')
-        else:
-            args = False
-        # Dictionary constructed and returned
-        parsed_command = {
-            'user': user,
-            'channel': channel,
-            'command': command,
-            'args': args
-        }
-        return parsed_command
-
     # sock_send - Issues message commands to IRC protocol
     # Params:
     #   msg - type: string, the message to send
@@ -106,32 +82,54 @@ class BileIrcBot(object):
                     self.sock_send('JOIN ' + channel + ' ' + key)
                 else:
                     self.sock_send('JOIN ' + channel)
+                # Add channel operations object for channel
+                self.channel_ops.append(ChannelOps(self, channel))
 
-    # send_chan_msg - Sends message out to channel via socket
+    # parse_command -
+    #   Params:
+    #      msg - type: string, the command to parse
+    #   Returns:
+    #      parsed_command type: dictionary, the object containting command attributes
+    def parse_command(self, msg):
+        # Parses the message to find the command issuing user, channel, and command name
+        query = msg.split(':$')[1]
+        user = msg.split(':')[1].split('!')[0]
+        channel = msg.split('PRIVMSG')[1].split(':')[0].strip()
+        command = query.split(' ')[0]
+        # Checks for arguments following bot command, places them to args. If there are none, set args to False
+        if ' ' in query:
+            args = query.split(' ', 1)[1].strip('\n\t')
+        else:
+            args = False
+        # Dictionary constructed and returned
+        parsed_command = {
+            'user': user,
+            'channel': channel,
+            'command': command,
+            'args': args
+        }
+        return parsed_command
+
+    # get_channel_op_by_chan - Returns the channel operations object given a channel
     #   params:
-    #      chan - type: string, the #channel to send the message out to
-    #      msg - type: string, the message to send out to the channel
-    def send_chan_msg(self, chan, msg):
-        self.sock_send('PRIVMSG ' + chan + ' :' + str(msg))
+    #      chan - type: string, the channel associated with the channel operations object
+    def get_channel_op_by_chan(self, chan):
+        for channel_op in self.channel_ops:
+            if channel_op.channel == chan:
+                return channel_op
 
-    # send_priv_msg - Sends a private message to a given user via socket
-    #    params:
-    #      user - type: string, the user to send the private message to
-    #      msg - type: string, the message to send
-    def send_priv_msg(self, user, msg):
-        self.sock_send('PRIVMSG ' + user + ' :' + msg)
-
-    # dir_to_func
+    # dir_to_func - calls the appropriate function given a command
     #    params:
     #       cmd_info - type: dictionary, the dictionary containing command info for the bot functions
     #                   [user, channel, command, args]
     def dir_to_func(self, cmd_info):
         command = cmd_info['command']
+        channel_op = self.get_channel_op_by_chan(cmd_info['channel'])
         # Looks for keywords and sends command info to respective function
         if command == 'time':
-            get_time(self, cmd_info)
+            channel_op.get_time(cmd_info)
         elif command == 'hello':
-            say_hello(self, cmd_info)
+            channel_op.say_hello(cmd_info)
         else:
             # If no such command exists, send message to channel
             self.send_chan_msg(cmd_info['channel'], "Command $" + command + " does not exist.")
