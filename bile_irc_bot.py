@@ -2,6 +2,7 @@
 import socket
 import time
 from channel_ops import *
+from parse import *
 
 class BileIrcBot(object):
     # Define Port
@@ -19,8 +20,11 @@ class BileIrcBot(object):
         self.nick = nick
         self.password = password
         self.channels = channels
+        # Creates an empty irc parser object
+        self.parse = None
         # Creates socket object as attribute of bot
         self.irc_socket = None
+        # Intializes channel ops objects to an empty list
         self.channel_ops = []
 
     # connect_to_server - Connects the bot to the given server
@@ -32,6 +36,8 @@ class BileIrcBot(object):
         # Issues commands to network identifying bot as bot.nick
         self.sock_send('USER ' + self.nick + ' ' + self.nick + ' ' + self.nick + ' : ')
         self.sock_send('NICK ' + self.nick)
+        # Parser object is created
+        self.parser = ParseIrcMsg()
         # While connected
         while 1:
             # Recieve irc protocol messages in 512 byte increments
@@ -45,21 +51,25 @@ class BileIrcBot(object):
     #   Params:
     #      msg - type: string, the message to read
     def handle_message(self, msg):
-        if 'PING :' in msg:
+        # Output raw message to terminal
+        print msg
+        # Check if incoming message is ping
+        if self.parser.is_ping(msg):
             self.pong()
-        elif 'NickServ IDENTIFY' in msg:
+        # Check if incoming message requests password identity
+        elif self.parser.is_call_for_identity(msg):
             self.identify()
-        elif ':Password accepted' in msg:
+        # Check if incoming message notifies us of password acceptance
+        elif self.parser.is_pass_accepted(msg):
             self.join_channels()
-        elif ':$' in msg:
+        # Check if incoming message is a user issued bot command
+        elif self.parser.is_bot_command(msg):
             # Parse command
-            cmd_info = self.parse_command(msg)
+            cmd_info = self.parser.parse_bot_command(msg)
             # Get the channel op object we are working with
             channel_op = self.get_channel_op_by_chan(cmd_info['channel'])
             # Leave object to handle command
             channel_op.handle_command(cmd_info)
-        # Output raw message to terminal
-        print msg
 
     # sock_send - Issues message commands to IRC protocol
     # Params:
@@ -90,34 +100,11 @@ class BileIrcBot(object):
                 # Add channel operations object for channel
                 self.channel_ops.append(ChannelOps(self, channel))
 
-    # parse_command -
-    #   Params:
-    #      msg - type: string, the command to parse
-    #   Returns:
-    #      parsed_command type: dictionary, the object containting command attributes
-    def parse_command(self, msg):
-        # Parses the message to find the command issuing user, channel, and command name
-        query = msg.split(':$')[1]
-        user = msg.split(':')[1].split('!')[0]
-        channel = msg.split('PRIVMSG')[1].split(':')[0].strip()
-        command = query.split(' ')[0]
-        # Checks for arguments following bot command, places them to args. If there are none, set args to False
-        if ' ' in query:
-            args = query.split(' ', 1)[1].strip('\n\t')
-        else:
-            args = False
-        # Dictionary constructed and returned
-        parsed_command = {
-            'user': user,
-            'channel': channel,
-            'command': command,
-            'args': args
-        }
-        return parsed_command
-
     # get_channel_op_by_chan - Returns the channel operations object given a channel
     #   params:
     #      chan - type: string, the channel associated with the channel operations object
+    #   return:
+    #      channel_op - type: object, the corresponding chanel operations object
     def get_channel_op_by_chan(self, chan):
         for channel_op in self.channel_ops:
             if channel_op.channel == chan:
