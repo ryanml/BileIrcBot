@@ -6,27 +6,6 @@ class ParseIrcMsg(object):
     # Constants
     BOT_COMMAND_TOKEN = ':$'
 
-    # parse_msg -
-    #   Params:
-    #      msg - type: string, irc message to parse
-    #   Returns:
-    #      parsed_msg type: dictionary, dictionary containing the irc message's source, type, and trailing info
-    def parse_msg(self, msg):
-        space_split = msg.split(' ')
-        source = space_split[0].strip(':')
-        if len(space_split) > 1:
-            msg_type = space_split[1]
-            msg_trail = msg.split(msg_type)[1]
-        else:
-            msg_type = ''
-            msg_trail = ''
-        parsed_msg = {
-            'source': source,
-            'type': msg_type,
-            'trail': msg_trail
-        }
-        return parsed_msg
-
     # is_ping - Checks if irc msg is a ping request
     #   Params:
     #      msg - type: string, irc message to parse
@@ -45,13 +24,10 @@ class ParseIrcMsg(object):
     #   Returns:
     #      bool type: boolean
     def is_bot_command(self, msg):
-        parsed_msg = self.parse_msg(msg)
-        if not parsed_msg['type'] == 'PRIVMSG':
-            return False
-        if not self.BOT_COMMAND_TOKEN in parsed_msg['trail']:
-            return False
-        else:
+        if self.BOT_COMMAND_TOKEN in msg:
             return True
+        else:
+            return False
 
     # is_call_for_identity - Checks if irc msg is requesting password identification
     #   Params:
@@ -59,13 +35,10 @@ class ParseIrcMsg(object):
     #   Returns:
     #      bool type: boolean
     def is_call_for_identity(self, msg):
-        parsed_msg = self.parse_msg(msg)
-        if not parsed_msg['type'] == 'NOTICE':
-            return False
-        if not 'NickServ IDENTIFY' in parsed_msg['trail']:
-            return False
-        else:
+        if 'NickServ IDENTIFY' in msg:
             return True
+        else:
+            return False
 
     # is_pass_accepted - Checks if irc msg is notifying the bot user of a successful password identification
     #   Params:
@@ -73,13 +46,10 @@ class ParseIrcMsg(object):
     #   Returns:
     #      bool type: boolean
     def is_pass_accepted(self, msg):
-        parsed_msg = self.parse_msg(msg)
-        if not parsed_msg['type'] == 'NOTICE':
-            return False
-        if not 'Password accepted' in parsed_msg['trail']:
-            return False
-        else:
+        if 'Password accepted' in msg:
             return True
+        else:
+            return False
 
     # parse_bot_command -
     #   Params:
