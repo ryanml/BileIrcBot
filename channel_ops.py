@@ -30,9 +30,9 @@ class ChannelOps(object):
             user = ['', '']
             if not u[0].isalpha():
                 user[0] = u[0]
-                user[1] = u[1:].strip('\r\n')
+                user[1] = u[1:]
             else:
-                user[1] = u.strip('\r\n')
+                user[1] = u
             self.users.append(user)
 
     # handle_command - Given a bot command, directs it to the correct function
@@ -75,7 +75,3 @@ class ChannelOps(object):
     def get_time(self, cmd_info):
         current_time = time.strftime('%H:%M:%S [%Z]')
         self.send_chan_msg('The current time is: \x02' + current_time + '\x02')
-
-    #test
-    def get_names(self):
-        print self.users

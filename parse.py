@@ -63,7 +63,7 @@ class ParseIrcMsg(object):
             return True
         else:
             return False
-            
+
     # is_user_list - Checks if irc msg is a list of channel users
     #   Params:
     #      msg - type: string, irc message to parse
@@ -84,7 +84,7 @@ class ParseIrcMsg(object):
     def get_user_list_and_chan(self, msg):
         s_s = msg.split(' ')
         channel = s_s[4]
-        user_list = msg.split(':')[2]
+        user_list = msg.split(':')[2].strip('\r\n')
         ch_usr = {
             'channel': channel,
             'user_list': user_list,
