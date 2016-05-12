@@ -7,7 +7,7 @@ import random
 
 class ChannelOps(object):
     # Commands accepted by this class
-    COMMANDS = ['time', 'hello']
+    COMMANDS = ['time', 'hello', 'users']
     # Creates tokens for user levels
     FOUNDER = '~'
     OPERATOR = '@'
@@ -20,6 +20,24 @@ class ChannelOps(object):
         self.channel = channel
         self.users = []
 
+    # set_users - Given a list of users, sets self.users to a list of lists, each containing
+    #             a user and their respective user level ex [['@', 'the_operator'], ['+', 'the_voice']]
+    #   params:
+    #      user_list - a list of concatenated levels and users
+    def set_users(self, user_list):
+        u_s = user_list.split(' ')
+        for u in u_s:
+            user = ['', '']
+            if not u[0].isalpha():
+                user[0] = u[0]
+                user[1] = u[1:].strip('\r\n')
+            else:
+                user[1] = u.strip('\r\n')
+            self.users.append(user)
+
+    # handle_command - Given a bot command, directs it to the correct function
+    #   params:
+    #      cmd_info - type: dictionary, a dictionary of bot command info
     def handle_command(self, cmd_info):
         command = cmd_info['command']
         if command in self.COMMANDS:
@@ -27,6 +45,8 @@ class ChannelOps(object):
                 self.say_hello(cmd_info)
             elif command == 'time':
                 self.get_time(cmd_info)
+            elif command == 'users':
+                self.get_names()
         else:
             self.send_chan_msg("Command $" + command + " does not exist.")
 
@@ -55,3 +75,7 @@ class ChannelOps(object):
     def get_time(self, cmd_info):
         current_time = time.strftime('%H:%M:%S [%Z]')
         self.send_chan_msg('The current time is: \x02' + current_time + '\x02')
+
+    #test
+    def get_names(self):
+        print self.users

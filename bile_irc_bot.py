@@ -67,10 +67,16 @@ class BileIrcBot(object):
         elif self.parser.get_msg_type(msg) == 'JOIN':
             true_chan_case = msg.split('JOIN')[1].strip(' :')
             for channel in self.channels:
+                # Sets channel passed in bot construction to the appropriate case
                 if channel[0].lower() == true_chan_case.lower():
                     channel[0] = true_chan_case
                 # Add channel operations object for channel
                 self.channel_ops.append(ChannelOps(self, channel[0]))
+        # Check for user list spit out upon channel join. Directs it to the appropriate channel op object
+        elif self.parser.is_user_list(msg):
+            usr_chan_dict = self.parser.get_user_list_and_chan(msg)
+            channel_op = self.get_channel_op_by_chan(usr_chan_dict['channel'])
+            channel_op.set_users(usr_chan_dict['user_list'])
         # Check if incoming message is a user issued bot command
         elif self.parser.is_bot_command(msg):
             # Parse command

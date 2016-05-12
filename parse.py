@@ -17,7 +17,7 @@ class ParseIrcMsg(object):
             return True
         else:
             return False
-            
+
     # get_msg_type - Returns the type of IRC message
     #   Params:
     #      msg - type: string, irc message to parse
@@ -63,6 +63,33 @@ class ParseIrcMsg(object):
             return True
         else:
             return False
+            
+    # is_user_list - Checks if irc msg is a list of channel users
+    #   Params:
+    #      msg - type: string, irc message to parse
+    #   Returns:
+    #      bool type: boolean
+    def is_user_list(self, msg):
+        s_s = msg.split(' ')
+        if len(s_s) >= 4 and '=' in s_s:
+            return True
+        else:
+            return False
+
+    # get_user_list_and_chan - Fetches the channel for a given user list and the unparsed userlist
+    #   Params:
+    #      msg - type: string, irc message to parse
+    #   Returns:
+    #      ch_usr type: dictionary, dictionary containing a channel and user list
+    def get_user_list_and_chan(self, msg):
+        s_s = msg.split(' ')
+        channel = s_s[4]
+        user_list = msg.split(':')[2]
+        ch_usr = {
+            'channel': channel,
+            'user_list': user_list,
+        }
+        return ch_usr
 
     # parse_bot_command -
     #   Params:
