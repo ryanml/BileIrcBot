@@ -5,7 +5,7 @@ from bile_irc_bot import BileIrcBot
 
 def main():
     # bot = BileIrcBot('irc.server', 'BotNick', 'botPass',
-    #     [('#channelOne', 'channelOnePass'), ('#channelTwo', False)]
+    #     [['#channelOne', 'channelOnePass'], ['#channelTwo', False]]
     # )
     # bot.connect_to_server()
 

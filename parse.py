@@ -17,6 +17,19 @@ class ParseIrcMsg(object):
             return True
         else:
             return False
+            
+    # get_msg_type - Returns the type of IRC message
+    #   Params:
+    #      msg - type: string, irc message to parse
+    #   Returns:
+    #      msg_type - type: string, type of irc message
+    def get_msg_type(self, msg):
+        s_s = msg.split(' ')
+        if len(s_s) > 1:
+            msg_type = s_s[1]
+        else:
+            msg_type = ''
+        return msg_type
 
     # is_bot_command - Checks if irc msg is a bot command
     #   Params:

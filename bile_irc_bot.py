@@ -62,6 +62,15 @@ class BileIrcBot(object):
         # Check if incoming message notifies us of password acceptance
         elif self.parser.is_pass_accepted(msg):
             self.join_channels()
+        # Check for a channel join message. Check for an edge case that the user provides
+        # a valid channel with an invalid case.
+        elif self.parser.get_msg_type(msg) == 'JOIN':
+            true_chan_case = msg.split('JOIN')[1].strip(' :')
+            for channel in self.channels:
+                if channel[0].lower() == true_chan_case.lower():
+                    channel[0] = true_chan_case
+                # Add channel operations object for channel
+                self.channel_ops.append(ChannelOps(self, channel[0]))
         # Check if incoming message is a user issued bot command
         elif self.parser.is_bot_command(msg):
             # Parse command
@@ -97,8 +106,6 @@ class BileIrcBot(object):
                     self.sock_send('JOIN ' + channel + ' ' + key)
                 else:
                     self.sock_send('JOIN ' + channel)
-                # Add channel operations object for channel
-                self.channel_ops.append(ChannelOps(self, channel))
 
     # get_channel_op_by_chan - Returns the channel operations object given a channel
     #   params:
