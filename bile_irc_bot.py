@@ -52,8 +52,13 @@ class BileIrcBot(object):
         elif ':Password accepted' in msg:
             self.join_channels()
         elif ':$' in msg:
+            # Parse command
             cmd_info = self.parse_command(msg)
-            self.dir_to_func(cmd_info)
+            # Get the channel op object we are working with
+            channel_op = self.get_channel_op_by_chan(cmd_info['channel'])
+            # Leave object to handle command
+            channel_op.handle_command(cmd_info)
+        # Output raw message to terminal
         print msg
 
     # sock_send - Issues message commands to IRC protocol
@@ -117,19 +122,3 @@ class BileIrcBot(object):
         for channel_op in self.channel_ops:
             if channel_op.channel == chan:
                 return channel_op
-
-    # dir_to_func - calls the appropriate function given a command
-    #    params:
-    #       cmd_info - type: dictionary, the dictionary containing command info for the bot functions
-    #                   [user, channel, command, args]
-    def dir_to_func(self, cmd_info):
-        command = cmd_info['command']
-        channel_op = self.get_channel_op_by_chan(cmd_info['channel'])
-        # Looks for keywords and sends command info to respective function
-        if command == 'time':
-            channel_op.get_time(cmd_info)
-        elif command == 'hello':
-            channel_op.say_hello(cmd_info)
-        else:
-            # If no such command exists, send message to channel
-            self.send_chan_msg(cmd_info['channel'], "Command $" + command + " does not exist.")
