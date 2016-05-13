@@ -8,7 +8,17 @@ import random
 
 class ChannelOps(object):
     # Commands accepted by this class
-    COMMANDS = ['time', 'hello']
+    COMMANDS = ['time', 'hello', 'kick']
+
+    # Level Values
+    # [ level_symbol, level_weight ]
+    LEVELS = {
+        '~': 4,
+        '@': 3,
+        '%': 2,
+        '+': 1,
+        ' ': 0
+    }
 
     # Is initialized with a bot object and a channel
     def __init__(self, bot, channel):
@@ -32,6 +42,20 @@ class ChannelOps(object):
                 user[1] = u
             self.users.append(user)
 
+    # get_user - Given a nick, returns a dictionary with the nick's user level if it exists
+    #   params:
+    #      nick - type: string, nick to fetch
+    #   Returns:
+    #      Dictionary or None if no user exists
+    def get_user(self, nick):
+        for user in self.users:
+            if user[1] == nick.strip(' '):
+                return {
+                    'nick': nick,
+                    'level': user[0]
+                }
+        return None
+
     # handle_command - Given a bot command, directs it to the correct function
     #   params:
     #      cmd_info - type: dictionary, a dictionary of bot command info
@@ -42,6 +66,8 @@ class ChannelOps(object):
                 self.say_hello(cmd_info)
             elif command == 'time':
                 self.get_time(cmd_info)
+            elif command == 'kick':
+                self.kick_user(cmd_info)
         else:
             self.send_chan_msg("Command $" + command + " does not exist.")
 
@@ -71,6 +97,20 @@ class ChannelOps(object):
         current_time = time.strftime('%H:%M:%S [%Z]')
         self.send_chan_msg('The current time is: \x02' + current_time + '\x02')
 
-    # get_time - Sends a call to IRC protocol for the channel's name list 
+    # get_time - Sends a call to IRC protocol for the channel's name list
     def get_names(self):
         self.bot.sock_send('NAMES ' + self.channel)
+
+    # kick_user - Attempts to kick a given user
+    #    params:
+    #       cmd_info - type: dictionary, the dictionary containing command info
+    def kick_user(self, cmd_info):
+        to_kick = self.get_user(cmd_info['args'])
+        if to_kick:
+            cmd_user = self.get_user(cmd_info['user'])
+            if cmd_user['level'] > to_kick['level']:
+                self.bot.sock_send('KICK ' + self.channel + ' ' + to_kick['nick'])
+            else:
+                self.send_chan_msg('Error: Failed Kick. Insufficient User Level')
+        else:
+            self.send_chan_msg('Error: Failed Kick. No Such User')
