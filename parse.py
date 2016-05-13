@@ -63,6 +63,14 @@ class ParseIrcMsg(object):
             return True
         else:
             return False
+    # get_true_chan_case - Gets the channel's case as it was registered
+    #   Params:
+    #      msg - type: string, irc message to parse
+    #   Returns:
+    #      true_chan_case - type: string, the channel name
+    def get_true_chan_case(self, msg):
+        true_chan_case = msg.split('JOIN')[1].strip(' :').lower()
+        return true_chan_case
 
     # is_user_list - Checks if irc msg is a list of channel users
     #   Params:
@@ -90,6 +98,29 @@ class ParseIrcMsg(object):
             'user_list': user_list,
         }
         return ch_usr
+
+    # get_mode_args - Checks to see if a user level change has been made
+    #   Params:
+    #      msg - type: string, irc message to parse
+    #   Returns:
+    #      mode_args type: dictionary, dictionary containing the channel and user level change
+    def get_mode_args(self, msg):
+        levels = ['v', 'h', 'o']
+        args = msg.split('MODE')[1].split(' ')
+        channel = args[1]
+        mode = args[2][1]
+        if len(args) >= 4:
+            if not mode in levels:
+                is_level = False
+            else:
+                is_level = True
+        else:
+            is_level = None
+        mode_args = {
+            'channel': channel,
+            'is_level': is_level,
+        }
+        return mode_args
 
     # parse_bot_command -
     #   Params:

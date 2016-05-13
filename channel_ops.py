@@ -1,4 +1,5 @@
 # Author: Ryan Lanese
+# channel_ops.py
 
 import time
 import json
@@ -7,12 +8,7 @@ import random
 
 class ChannelOps(object):
     # Commands accepted by this class
-    COMMANDS = ['time', 'hello', 'users']
-    # Creates tokens for user levels
-    FOUNDER = '~'
-    OPERATOR = '@'
-    HALF_OPERATOR = '%'
-    VOICE = '+'
+    COMMANDS = ['time', 'hello']
 
     # Is initialized with a bot object and a channel
     def __init__(self, bot, channel):
@@ -25,6 +21,7 @@ class ChannelOps(object):
     #   params:
     #      user_list - a list of concatenated levels and users
     def set_users(self, user_list):
+        self.users = []
         u_s = user_list.split(' ')
         for u in u_s:
             user = ['', '']
@@ -45,8 +42,6 @@ class ChannelOps(object):
                 self.say_hello(cmd_info)
             elif command == 'time':
                 self.get_time(cmd_info)
-            elif command == 'users':
-                self.get_names()
         else:
             self.send_chan_msg("Command $" + command + " does not exist.")
 
@@ -75,3 +70,7 @@ class ChannelOps(object):
     def get_time(self, cmd_info):
         current_time = time.strftime('%H:%M:%S [%Z]')
         self.send_chan_msg('The current time is: \x02' + current_time + '\x02')
+
+    # get_time - Sends a call to IRC protocol for the channel's name list 
+    def get_names(self):
+        self.bot.sock_send('NAMES ' + self.channel)

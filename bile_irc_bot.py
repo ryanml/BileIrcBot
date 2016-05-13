@@ -1,4 +1,6 @@
 # Author: Ryan Lanese
+# Title: bile_irc_bot.py
+
 import socket
 import time
 from channel_ops import *
@@ -65,10 +67,10 @@ class BileIrcBot(object):
         # Check for a channel join message. Check for an edge case that the user provides
         # a valid channel with an invalid case.
         elif self.parser.get_msg_type(msg) == 'JOIN':
-            true_chan_case = msg.split('JOIN')[1].strip(' :')
+            true_chan_case = self.parser.get_true_chan_case(msg)
             for channel in self.channels:
                 # Sets channel passed in bot construction to the appropriate case
-                if channel[0].lower() == true_chan_case.lower():
+                if channel[0].lower() == true_chan_case:
                     channel[0] = true_chan_case
                 # Add channel operations object for channel
                 self.channel_ops.append(ChannelOps(self, channel[0]))
@@ -77,6 +79,13 @@ class BileIrcBot(object):
             usr_chan_dict = self.parser.get_user_list_and_chan(msg)
             channel_op = self.get_channel_op_by_chan(usr_chan_dict['channel'])
             channel_op.set_users(usr_chan_dict['user_list'])
+        # Check if message type is MODE
+        elif self.parser.get_msg_type(msg) == 'MODE':
+            mode_args = self.parser.get_mode_args(msg)
+            # If this mode is a user level change, call NAMES to update our user list
+            if mode_args['is_level']:
+                channel_op = self.get_channel_op_by_chan(mode_args['channel'])
+                channel_op.get_names()
         # Check if incoming message is a user issued bot command
         elif self.parser.is_bot_command(msg):
             # Parse command
