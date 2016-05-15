@@ -17,7 +17,7 @@ class ChannelOps(object):
         '@': 3,
         '%': 2,
         '+': 1,
-        ' ': 0
+        '': 0
     }
 
     # Is initialized with a bot object and a channel
@@ -51,7 +51,7 @@ class ChannelOps(object):
         for user in self.users:
             if user[1] == nick.strip(' '):
                 return {
-                    'nick': nick,
+                    'nick': nick.strip(' '),
                     'level': user[0]
                 }
         return None
@@ -108,7 +108,7 @@ class ChannelOps(object):
         to_kick = self.get_user(cmd_info['args'])
         if to_kick:
             cmd_user = self.get_user(cmd_info['user'])
-            if cmd_user['level'] > to_kick['level']:
+            if self.LEVELS[cmd_user['level']] > self.LEVELS[to_kick['level']]:
                 self.bot.sock_send('KICK ' + self.channel + ' ' + to_kick['nick'])
             else:
                 self.send_chan_msg('Error: Failed Kick. Insufficient User Level')

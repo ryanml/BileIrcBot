@@ -63,13 +63,14 @@ class ParseIrcMsg(object):
             return True
         else:
             return False
+
     # get_true_chan_case - Gets the channel's case as it was registered
     #   Params:
     #      msg - type: string, irc message to parse
     #   Returns:
     #      true_chan_case - type: string, the channel name
     def get_true_chan_case(self, msg):
-        true_chan_case = msg.split('JOIN')[1].strip(' :').lower()
+        true_chan_case = msg.split('JOIN')[1].split(':')[1].strip('\n')
         return true_chan_case
 
     # is_user_list - Checks if irc msg is a list of channel users
